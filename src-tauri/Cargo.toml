@@ -1,0 +1,57 @@
+[package]
+name = "lighthouse"
+version = "0.1.0"
+description = "Skim NPR Music podcasts for the songs"
+authors = ["mime"]
+edition = "2024"
+default-run = "Lighthouse"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "lighthouse_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+# Capitalized so the dev process shows as "Lighthouse" in the app switcher.
+name = "Lighthouse"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["protocol-asset"] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ort = "=2.0.0-rc.15"
+symphonia = { version = "0.6", features = ["mp3"] }
+quick-xml = "0.42"
+reqwest = { version = "0.13", features = ["stream"] }
+regex = "1"
+html-escape = "0.3"
+ammonia = "4"
+chrono = { version = "0.4", features = ["serde"] }
+tokio = { version = "1", features = ["fs", "io-util", "macros", "rt-multi-thread"] }
+futures-util = "0.3"
+anyhow = "1"
+sha1_smol = "1"
+
+
+# Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
