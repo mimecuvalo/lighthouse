@@ -17,7 +17,7 @@ interface Options {
   segments: Segment[];
   stops: Stop[];
   skipTalk: boolean;
-  /** When true, F7/F9 jump between songs instead of skipping 15/30 s. */
+  /** When true (the default), F7/F9 jump between songs instead of skipping 15/30 s. */
   mediaKeysJumpSongs: boolean;
   nowPlaying: NowPlaying | null;
   /** Played episodes start over instead of resuming. */

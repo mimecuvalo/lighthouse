@@ -50,7 +50,7 @@ export default function App() {
   const [sidebarWidth, setSidebarWidth] = usePref<number>("sidebarWidth", SIDEBAR_DEFAULT);
   const resizeFrom = useRef<{ x: number; width: number } | null>(null);
   const [skipTalk, setSkipTalk] = usePref<boolean>("skipTalk", true);
-  const [mediaKeysJumpSongs, setMediaKeysJumpSongs] = usePref<boolean>("mediaKeysJumpSongs", false);
+  const [mediaKeysJumpSongs, setMediaKeysJumpSongs] = usePref<boolean>("mediaKeysJumpSongs", true);
   const [selected, setSelected] = useState<string | null>(null);
   const [prepared, setPrepared] = useState<Prepared | null>(null);
   const [progress, setProgress] = useState<PrepareProgress | null>(null);
