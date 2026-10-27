@@ -47,7 +47,8 @@ sha1_smol = "1"
 codegen-units = 1
 lto = true
 opt-level = 3
-panic = "abort"
+# No `panic = "abort"`: wry relies on unwinding to catch the NSException WebKit throws
+# when an asset:// request (e.g. audio range request) is cancelled mid-response.
 strip = true
 
 [profile.dev]
