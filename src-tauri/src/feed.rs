@@ -80,7 +80,9 @@ fn parse_item(item: &str) -> Option<Episode> {
 }
 
 fn show_for_title(title: &str) -> &'static str {
-    if title.starts_with("New Music Friday") {
+    if title.trim_end().ends_with("(NPR+)") {
+        "NPR+"
+    } else if title.starts_with("New Music Friday") {
         "New Music Friday"
     } else if title.starts_with("Alt.Latino") {
         "Alt.Latino"
@@ -347,6 +349,11 @@ mod tests {
         assert_eq!(e.duration, 2379.0);
         assert!(e.audio_url.contains("default.mp3"));
         assert!(e.image.is_some());
+    }
+
+    #[test]
+    fn npr_plus_is_its_own_show() {
+        assert_eq!(episode("Over and Over: \"Crimson and Clover\"").show, "NPR+");
     }
 
     #[test]

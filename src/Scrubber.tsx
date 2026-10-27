@@ -117,6 +117,8 @@ export function Scrubber({ duration, time, peaks, peakHop, segments, tracks, cur
       music: cssVar(canvas, "--wave-music"),
       speech: cssVar(canvas, "--wave-speech"),
       tick: cssVar(canvas, "--tick"),
+      playhead: cssVar(canvas, "--playhead"),
+      gap: cssVar(canvas, "--bg"),
     };
     if (!duration) return;
     const toX = (t: number) => (t / duration) * width;
@@ -140,8 +142,14 @@ export function Scrubber({ duration, time, peaks, peakHop, segments, tracks, cur
     ctx.fillStyle = colors.tick;
     for (const l of labels) ctx.fillRect(Math.round(l.x), 0, 1, WAVE_HEIGHT);
 
-    ctx.fillStyle = colors.played;
-    ctx.fillRect(Math.round(toX(time)) - 1, 0, 2, WAVE_HEIGHT);
+    // Cut a gap around the playhead so it stands apart from the bars behind it.
+    const x = Math.round(toX(time));
+    ctx.fillStyle = colors.gap;
+    ctx.fillRect(x - 3, 0, 6, WAVE_HEIGHT);
+    ctx.fillStyle = colors.playhead;
+    ctx.fillRect(x - 1, 0, 2, WAVE_HEIGHT);
+    ctx.fillRect(x - 4, 0, 8, 3);
+    ctx.fillRect(x - 4, WAVE_HEIGHT - 3, 8, 3);
   }, [bars, labels, segments, time, duration, width, scheme]);
 
   const timeAt = (clientX: number) => {
