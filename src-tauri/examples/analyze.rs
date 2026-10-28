@@ -1,4 +1,4 @@
-//! Debug tool: `cargo run --release --bin analyze -- <file.mp3> [episode title substring]`
+//! Debug tool: `cargo run --release --example analyze -- <file.mp3> [episode title substring]`
 //! Prints detected segments and, given a title, the aligned tracklist from the live feed.
 
 use std::path::{Path, PathBuf};

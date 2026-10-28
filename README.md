@@ -58,8 +58,8 @@ Tests and the analysis debugging tool:
 
 ```sh
 cd src-tauri
-cargo test                                         # feed parsing, segmentation, alignment
-cargo run --bin analyze -- episode.mp3 "Gilla Band"  # print music sections and aligned songs
+cargo test                                               # feed parsing, segmentation, alignment
+cargo run --example analyze -- episode.mp3 "Gilla Band"  # print music sections and aligned songs
 ```
 
 ### Layout
