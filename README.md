@@ -38,7 +38,7 @@ When you open an episode for the first time, Lighthouse downloads it and runs fo
 1. **Parse the tracklist** from the episode description (`feed.rs`). It understands the timestamped formats, such as `(03:22) Artist: "Title"` and _New Music Friday_'s `(02:23) Album No. 1` / `- Artist, 'Album'` with its lightning-round picks. It also reads untimed lists like "Featured artists and songs:".
 2. **Classify the audio** (`analyze.rs`). The MP3 is decoded with [symphonia](https://github.com/pdeljanov/Symphonia) and resampled to 16 kHz. It's then run through [YAMNet](https://github.com/tensorflow/models/tree/master/research/audioset/yamnet), an audio classifier, with [ONNX Runtime](https://onnxruntime.ai/). Each half-second gets a music-versus-speech score. That score is smoothed and split into music and speech sections.
 3. **Align** the tracklist to those sections (`align.rs`). Timestamps in the notes mark where the hosts *introduce* a song, and inserted ads push everything later. So each song is matched to the first music section after its timestamp, allowing for a running ad offset. For untimed lists, songs are assigned in order to the longest music sections.
-4. **Cache** the audio and the analysis in `~/Library/Application Support/com.mime.lighthouse/episodes/`, so reopening an episode is instant.
+4. **Cache** the audio and the analysis in `~/Library/Application Support/com.nightlight.lighthouse/episodes/`, so reopening an episode is instant.
 
 Ads are inserted dynamically, so they differ from one download to the next. That's why the analysis always runs on the exact file being played. The analysis takes a few seconds per episode, and everything runs locally.
 
