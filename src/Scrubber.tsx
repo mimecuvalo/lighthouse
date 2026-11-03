@@ -92,11 +92,15 @@ export function Scrubber({ duration, time, peaks, peakHop, segments, tracks, cur
     for (let i = 0; i < count; i++) {
       const t0 = (i / count) * duration;
       const t1 = ((i + 1) / count) * duration;
-      let peak = 0;
+      // Average the loudness under each bar; a max would let one loud moment set the whole bar.
+      let sum = 0;
+      let n = 0;
       for (let p = Math.floor(t0 / peakHop); p < Math.min(peaks.length, Math.ceil(t1 / peakHop)); p++) {
-        peak = Math.max(peak, peaks[p]);
+        sum += peaks[p];
+        n++;
       }
-      out.push({ x: i * step, t: t0, h: Math.max(1, Math.pow(peak, 0.8) * (WAVE_HEIGHT - 6)) });
+      const level = n ? sum / n : 0;
+      out.push({ x: i * step, t: t0, h: Math.max(1, Math.pow(level, 0.8) * (WAVE_HEIGHT - 6)) });
     }
     return out;
   }, [peaks, peakHop, width, duration]);
@@ -118,7 +122,6 @@ export function Scrubber({ duration, time, peaks, peakHop, segments, tracks, cur
       speech: cssVar(canvas, "--wave-speech"),
       tick: cssVar(canvas, "--tick"),
       playhead: cssVar(canvas, "--playhead"),
-      gap: cssVar(canvas, "--bg"),
     };
     if (!duration) return;
     const toX = (t: number) => (t / duration) * width;
@@ -142,14 +145,8 @@ export function Scrubber({ duration, time, peaks, peakHop, segments, tracks, cur
     ctx.fillStyle = colors.tick;
     for (const l of labels) ctx.fillRect(Math.round(l.x), 0, 1, WAVE_HEIGHT);
 
-    // Cut a gap around the playhead so it stands apart from the bars behind it.
-    const x = Math.round(toX(time));
-    ctx.fillStyle = colors.gap;
-    ctx.fillRect(x - 3, 0, 6, WAVE_HEIGHT);
     ctx.fillStyle = colors.playhead;
-    ctx.fillRect(x - 1, 0, 2, WAVE_HEIGHT);
-    ctx.fillRect(x - 4, 0, 8, 3);
-    ctx.fillRect(x - 4, WAVE_HEIGHT - 3, 8, 3);
+    ctx.fillRect(Math.round(toX(time)) - 1, 0, 2, WAVE_HEIGHT);
   }, [bars, labels, segments, time, duration, width, scheme]);
 
   const timeAt = (clientX: number) => {
@@ -158,6 +155,8 @@ export function Scrubber({ duration, time, peaks, peakHop, segments, tracks, cur
   };
 
   const lanes = ROWS * ROW_HEIGHT;
+  const music = segments.reduce((sum, s) => (s.kind === "music" ? sum + s.end - s.start : sum), 0);
+  const talk = segments.reduce((sum, s) => (s.kind === "speech" ? sum + s.end - s.start : sum), 0);
 
   return (
     <div className="scrubber" ref={wrapRef} style={{ height: lanes + WAVE_HEIGHT + 20 }}>
@@ -215,6 +214,11 @@ export function Scrubber({ duration, time, peaks, peakHop, segments, tracks, cur
       )}
       <div className="axis">
         <span>{formatTime(time)}</span>
+        {segments.length > 0 && (
+          <span className="split">
+            {formatTime(music)} music · {formatTime(talk)} talk
+          </span>
+        )}
         <span>{formatTime(duration)}</span>
       </div>
     </div>

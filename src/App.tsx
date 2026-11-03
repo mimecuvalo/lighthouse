@@ -603,7 +603,7 @@ export default function App() {
                   </>
                 )}
               </section>
-              <details className="notes" open={episode.show === "New Music Friday"} key={episode.guid}>
+              <details className="notes" open key={episode.guid}>
                 <summary>Episode notes</summary>
                 <div onClick={onNotesClick} dangerouslySetInnerHTML={{ __html: episode.description_html }} />
               </details>
@@ -652,7 +652,17 @@ export default function App() {
                 ⏮
               </button>
               <button className="play" onClick={player.toggle} disabled={!ready} title="Play/pause (Space)">
-                {player.playing ? "❚❚" : "▶"}
+                {player.playing ? (
+                  <svg viewBox="0 0 16 16" width="16" height="16" aria-label="Pause">
+                    <rect x="3.5" y="2.5" width="3" height="11" rx="1" fill="currentColor" />
+                    <rect x="9.5" y="2.5" width="3" height="11" rx="1" fill="currentColor" />
+                  </svg>
+                ) : (
+                  // The triangle sits a little right of center so it looks centered.
+                  <svg viewBox="0 0 16 16" width="16" height="16" aria-label="Play">
+                    <path d="M5 2.8v10.4a.8.8 0 0 0 1.2.7l8.3-5.2a.8.8 0 0 0 0-1.4L6.2 2.1a.8.8 0 0 0-1.2.7z" fill="currentColor" />
+                  </svg>
+                )}
               </button>
               <button onClick={player.nextSong} disabled={!ready} title="Next song (])">
                 ⏭

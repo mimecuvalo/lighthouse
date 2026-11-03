@@ -453,6 +453,7 @@ kbd {
 
 .label:hover {
   z-index: 2;
+  background: var(--label-bg);
   max-width: none !important;
   border-color: var(--accent);
 }
@@ -467,6 +468,11 @@ kbd {
   background: transparent;
   box-shadow: none;
   border-color: transparent;
+}
+
+.label.chapter:not(.current):hover {
+  background: var(--bg);
+  border-color: var(--line);
 }
 
 .label.current,
@@ -610,7 +616,13 @@ kbd {
   border-radius: 50%;
   background: var(--fg);
   color: var(--bg);
-  font-size: 15px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.controls .play svg {
+  display: block;
 }
 
 .controls .play:hover:not(:disabled) {

@@ -123,6 +123,7 @@ export function usePlayer({
       return;
     }
     audio.src = src;
+    lastKind.current = null;
     const resume = live.current.played ? 0 : savedPosition(guid);
     const start = resume > 0 ? resume : live.current.skipTalk ? (live.current.stops[0]?.start ?? 0) : 0;
     const onLoaded = () => {
@@ -142,7 +143,10 @@ export function usePlayer({
       const { segments, stops, skipTalk, guid } = live.current;
       const kind = segmentAt(segments, t)?.kind ?? null;
       if (kind === "music") userInTalk.current = false;
-      if (skipTalk && !audio.paused && lastKind.current === "music" && kind === "speech" && !userInTalk.current) {
+      // A seek to a song's start can land a hair before it, which reads as drifting into talk. Treat
+      // talk right before a stop as already being there, or skip-talk jumps past the song we just sought to.
+      const arriving = stops.some((s) => s.start > t && s.start - t < 1.5);
+      if (skipTalk && !audio.paused && lastKind.current === "music" && kind === "speech" && !userInTalk.current && !arriving) {
         const stop = nextStop(stops, t);
         if (stop) {
           seek(stop.start);

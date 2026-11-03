@@ -12,7 +12,7 @@ use symphonia::core::io::MediaSourceStream;
 use symphonia::core::meta::MetadataOptions;
 
 /// Bump when the analysis output changes so cached results get recomputed.
-pub const VERSION: u32 = 2;
+pub const VERSION: u32 = 3;
 
 const RATE: u32 = 16_000;
 /// YAMNet emits one frame per 0.48 s (7680 samples), each covering 0.96 s.
@@ -44,6 +44,7 @@ pub struct Analysis {
     /// Smoothed music-minus-speech score per frame, in [-1, 1].
     pub music_score: Vec<f32>,
     pub peak_hop: f64,
+    /// Loudness per `peak_hop`, in [0, 1]. Named `peaks` from when it held peak samples.
     pub peaks: Vec<f32>,
     pub segments: Vec<Segment>,
 }
@@ -95,7 +96,7 @@ pub fn analyze(
     let mut mono: Vec<f32> = Vec::new();
     let mut pending: Vec<f32> = Vec::new();
     let mut scores: Vec<(f32, f32)> = Vec::new();
-    let mut peaks = PeakTracker::new((PEAK_HOP * RATE as f64) as usize);
+    let mut levels = LevelTracker::new((PEAK_HOP * RATE as f64) as usize);
     let mut total_out = 0usize;
 
     loop {
@@ -126,7 +127,7 @@ pub fn analyze(
         let resampler = resampler.get_or_insert_with(|| Resampler::new(rate, RATE));
         let before = pending.len();
         resampler.process(&mono, &mut pending);
-        peaks.push(&pending[before..]);
+        levels.push(&pending[before..]);
         total_out += pending.len() - before;
 
         while pending.len() >= CHUNK_SAMPLES {
@@ -158,7 +159,7 @@ pub fn analyze(
         frame_hop: FRAME_HOP as f64 / RATE as f64,
         music_score: music_score.iter().map(|v| (v * 1000.0).round() / 1000.0).collect(),
         peak_hop: PEAK_HOP,
-        peaks: peaks.finish(),
+        peaks: levels.finish(),
         segments,
     })
 }
@@ -318,35 +319,47 @@ impl Resampler {
     }
 }
 
-struct PeakTracker {
+/// Loudness (RMS) per hop rather than the peak sample: mastered music is dense but limited, while speech
+/// is spiky, so peaks made talk look louder than songs. Scaled so the loud end of the episode fills the height.
+struct LevelTracker {
     hop: usize,
     count: usize,
-    current: f32,
-    peaks: Vec<f32>,
+    sum_sq: f64,
+    levels: Vec<f32>,
 }
 
-impl PeakTracker {
+impl LevelTracker {
     fn new(hop: usize) -> Self {
-        PeakTracker { hop, count: 0, current: 0.0, peaks: Vec::new() }
+        LevelTracker { hop, count: 0, sum_sq: 0.0, levels: Vec::new() }
     }
 
     fn push(&mut self, samples: &[f32]) {
         for &s in samples {
-            self.current = self.current.max(s.abs());
+            self.sum_sq += (s as f64) * (s as f64);
             self.count += 1;
             if self.count == self.hop {
-                self.peaks.push((self.current.min(1.0) * 1000.0).round() / 1000.0);
-                self.count = 0;
-                self.current = 0.0;
+                self.flush();
             }
         }
     }
 
+    fn flush(&mut self) {
+        self.levels.push((self.sum_sq / self.count as f64).sqrt() as f32);
+        self.count = 0;
+        self.sum_sq = 0.0;
+    }
+
     fn finish(mut self) -> Vec<f32> {
         if self.count > 0 {
-            self.peaks.push((self.current.min(1.0) * 1000.0).round() / 1000.0);
+            self.flush();
         }
-        self.peaks
+        let mut sorted = self.levels.clone();
+        sorted.sort_by(f32::total_cmp);
+        let reference = sorted.get(sorted.len() * 99 / 100).copied().unwrap_or(0.0).max(1e-6);
+        self.levels
+            .iter()
+            .map(|v| ((v / reference).min(1.0) * 1000.0).round() / 1000.0)
+            .collect()
     }
 }
 

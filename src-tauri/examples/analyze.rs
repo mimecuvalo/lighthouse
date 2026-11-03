@@ -40,7 +40,10 @@ async fn main() -> anyhow::Result<()> {
     );
 
     for s in &analysis.segments {
-        println!("{} – {}  {:?}", fmt(s.start), fmt(s.end), s.kind);
+        let from = (s.start / analysis.peak_hop) as usize;
+        let to = ((s.end / analysis.peak_hop) as usize).min(analysis.peaks.len());
+        let level = analysis.peaks[from.min(to)..to].iter().sum::<f32>() / (to - from.min(to)).max(1) as f32;
+        println!("{} – {}  {:?}  level {:.2}", fmt(s.start), fmt(s.end), s.kind, level);
     }
 
     if let Some(e) = episode {
