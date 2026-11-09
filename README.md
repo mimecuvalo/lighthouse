@@ -6,6 +6,10 @@
 
 <p align="center">A macOS player for NPR Music podcasts that skips the talk and labels the songs.</p>
 
+<p align="center">
+  <img src="docs/screenshot.png" alt="Lighthouse playing an All Songs Considered episode, with the song list, episode notes and a labeled waveform scrubber">
+</p>
+
 ---
 
 Lighthouse plays the [NPR Music podcast feed](https://feeds.npr.org/510019/podcast.xml): _All Songs Considered_, _New Music Friday_ and _Alt.Latino_. It's built for one job: hearing the new music and finding things you like. Each episode is analyzed on your machine to find where the music is. The scrubber then shows each song's name at the point where it starts, much like comments on a SoundCloud track.
